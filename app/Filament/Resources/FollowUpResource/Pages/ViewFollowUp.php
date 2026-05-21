@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Filament\Resources\FollowUpResource\Pages;
+
+use App\Filament\Resources\FollowUpResource;
+use Filament\Resources\Pages\ViewRecord;
+
+class ViewFollowUp extends ViewRecord
+{
+    protected static string $resource = FollowUpResource::class;
+}

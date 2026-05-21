@@ -202,6 +202,37 @@ class Student extends Model
         return in_array($this->global_status, ['done', 'tested']);
     }
 
+    // Apakah siswa ini butuh di-follow up?
+    // Logika: belum bayar, belum dibatalkan, dan belum closing
+    public function needFollowUp(): bool
+    {
+        if ($this->global_status == 'cancelled') return false;
+        if ($this->payment_status == 'paid') return false;
+        if ($this->follow_up_status == 'closing') return false;
+
+        return true;
+    }
+
+    // Berapa hari sejak terakhir di-follow up?
+    // Berguna untuk menentukan prioritas
+    public function daysSinceLastFollowUp(): ?int
+    {
+        if (!$this->last_follow_up_at) return null;
+        return (int) $this->last_follow_up_at->diffInDays(now());
+    }
+
+    // Label warna prioritas follow up
+    // Semakin lama tidak di-FU, semakin urgent
+    public function followUpPriorityColor(): string
+    {
+        $days = $this->daysSinceLastFollowUp();
+
+        if ($days === null) return 'danger';   // belum pernah di-FU = paling urgent
+        if ($days >= 14) return 'danger';   // lebih dari 14 hari = urgent
+        if ($days >= 7) return 'warning';  // 7 hari = perlu perhatian
+        return 'success';                       // kurang dari 7 hari = oke
+    }
+
     // ============================================
     // ACCESSOR — Format data saat diambil
     // ============================================

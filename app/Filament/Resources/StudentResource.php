@@ -393,7 +393,7 @@ class StudentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['major', 'picUser', 'academicYear'])
+            ->with(['major', 'picUser', 'academicYear', 'followUps'])
             ->withoutGlobalScopes([
                 SoftDeletingScope::class, // tampilkan data soft delete juga
             ]);
