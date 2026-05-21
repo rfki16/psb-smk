@@ -45,6 +45,14 @@ class MajorSeeder extends Seeder
                 'description' => 'Analis Kesehatan',
                 'is_active'   => true,
                 'sort_order'  => 3,
+            ],
+            [
+                'school_id'   => $school->id,
+                'name'        => 'Psikotest Jurusan',
+                'code'        => 'PJ',
+                'description' => 'Belum Menentukan',
+                'is_active'   => true,
+                'sort_order'  => 2,
             ]
         ];
 

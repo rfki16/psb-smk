@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\StudentResource\Pages;
 
 use App\Filament\Resources\StudentResource;
+use App\Models\AcademicYear;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Contracts\Support\Htmlable;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class CreateStudent extends CreateRecord
 {
@@ -40,7 +43,15 @@ class CreateStudent extends CreateRecord
     {
         // Pastikan school_id terisi
         if (empty($data['school_id'])) {
-            $data['school_id'] = auth()->user()?->school_id ?? 1;
+            $data['school_id'] = Auth::user()?->school_id ?? 1;
+        }
+
+        // Auto isi academic_year_id
+        if (empty($data['academic_year_id'])) {
+
+            $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+
+            $data['academic_year_id'] = $activeAcademicYear?->id;
         }
 
         return $data;

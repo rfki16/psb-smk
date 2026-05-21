@@ -54,24 +54,25 @@ class StudentResource extends Resource
 
                         Forms\Components\TextInput::make('name')
                             ->label('Nama Lengkap Siswa')
+                            ->required(),
+
+                        Forms\Components\DatePicker::make('visit_date')
+                            ->label('Tanggal Kedatangan')
                             ->required()
-                            ->maxLength(255)
-                            ->columnSpan(2), // ambil 2 kolom (full width dalam section)
+                            ->default(now()) // default hari ini
+                            ->maxDate(now()), // tidak boleh tanggal masa depan
 
                         Forms\Components\TextInput::make('school_origin')
                             ->label('Asal Sekolah')
-                            ->required()
-                            ->maxLength(255),
+                            ->required(),
 
                         Forms\Components\TextInput::make('parent_name')
                             ->label('Nama Orang Tua / Wali')
-                            ->required()
-                            ->maxLength(255),
+                            ->required(),
 
                         Forms\Components\TextInput::make('no_hp')
                             ->label('Nomor HP')
                             ->required()
-                            ->maxLength(20)
                             ->tel()
                             ->unique(
                                 table: 'students',
@@ -80,32 +81,7 @@ class StudentResource extends Resource
                             )
                             ->helperText('Nomor HP harus unik, digunakan sebagai identifikasi siswa'),
 
-                        Forms\Components\DatePicker::make('visit_date')
-                            ->label('Tanggal Kedatangan')
-                            ->required()
-                            ->default(now()) // default hari ini
-                            ->maxDate(now()), // tidak boleh tanggal masa depan
-                    ]),
-
-                Forms\Components\Section::make('Informasi PSB')
-                    ->description('Data terkait proses penerimaan')
-                    ->icon('heroicon-o-clipboard-document-list')
-                    ->columns(2)
-                    ->schema([
-                        Forms\Components\TextInput::make('academic_year_id')
-                            ->label('Tahun Ajaran')
-                            ->required()
-                            ->options(
-                                // tampilkan semua tahun ajaran yang aktif
-                                AcademicYear::where('is_active', true)
-                                    ->pluck('name', 'id')
-                            )
-                            ->default(
-                                AcademicYear::where('is_active', true)->value('id')
-                            )
-                            ->searchable(),
-
-                        Forms\Components\TextInput::make('major_id')
+                        Forms\Components\Select::make('major_id')
                             ->label('Minat Jurusan')
                             ->placeholder('-- Pilih Jurusan --')
                             ->options(
@@ -126,14 +102,8 @@ class StudentResource extends Resource
                             ->default(fn() => Auth::id()) // default: user yang sedang login
                             ->searchable()
                             ->required(),
-
-                        Forms\Components\TextInput::make('school_id')
-                            ->default(
-                                // Untuk sekarang hardcode school_id = 1
-                                // Nanti akan diganti dengan school_id dari user yang login
-                                fn() => fn() => Auth::user()?->school_id ?? 1
-                            ),
                     ]),
+
 
                 Forms\Components\Section::make('Status Awal')
                     ->description('Status siswa saat pertama kali datang')
@@ -166,7 +136,6 @@ class StudentResource extends Resource
                             ->label('Catatan Panitia')
                             ->placeholder('Tulis catatan khusus jika ada...')
                             ->rows(3)
-                            ->maxLength(1000)
                             ->nullable(),
                     ]),
 
@@ -392,7 +361,8 @@ class StudentResource extends Resource
             ->defaultSort('created_at', 'desc')
 
             // Tampilkan 25 data per halaman
-            ->paginate(25)
+            ->paginationPageOptions([10, 25, 50, 100])  // opsi pilihan per halaman
+            ->defaultPaginationPageOption(25)
 
             // Stripe rows — baris bergantian warna, lebih mudah dibaca
             ->striped();
@@ -410,7 +380,7 @@ class StudentResource extends Resource
         return [
             'index' => Pages\ListStudents::route('/'),
             'create' => Pages\CreateStudent::route('/create'),
-            'view'  => Pages\ViewStudent::route('/{record'),
+            'view'  => Pages\ViewStudent::route('/{record}'),
             'edit' => Pages\EditStudent::route('/{record}/edit')
         ];
     }

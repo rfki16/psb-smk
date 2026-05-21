@@ -49,27 +49,22 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make()
                     ->label('PSB')
-                    ->icon('heroicon-o-academic-cap')
                     ->collapsed(false),
 
                 NavigationGroup::make()
                     ->label('Tes Kesehatan')
-                    ->icon('heroicon-o-heart')
                     ->collapsed(false),
 
                 NavigationGroup::make()
                     ->label('Laporan')
-                    ->icon('heroicon-o-document-chart-bar')
                     ->collapsed(true),
 
                 NavigationGroup::make()
                     ->label('Master Data')
-                    ->icon('heroicon-o-circle-stack')
                     ->collapsed(true),
 
                 NavigationGroup::make()
                     ->label('Pengaturan')
-                    ->icon('heroicon-o-cog-6-tooth')
                     ->collapsed(true),
             ])
 
