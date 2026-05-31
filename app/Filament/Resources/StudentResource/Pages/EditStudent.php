@@ -56,4 +56,20 @@ class EditStudent extends EditRecord
 
         return $data;
     }
+
+    // Setelah data siswa tersimpan, sync student_pics
+    protected function afterSave(): void
+    {
+        $record = $this->getRecord();
+
+        // Kalau pic_user_id berubah, tambahkan ke student_pics
+        if ($record->pic_user_id) {
+            $record->pics()->syncWithoutDetaching([
+                $record->pic_user_id => [
+                    'assigned_at' => now(),
+                    'notes'       => 'Diperbarui saat edit data siswa',
+                ],
+            ]);
+        }
+    }
 }

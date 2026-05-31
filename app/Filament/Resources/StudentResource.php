@@ -54,7 +54,10 @@ class StudentResource extends Resource
 
                         Forms\Components\TextInput::make('name')
                             ->label('Nama Lengkap Siswa')
-                            ->required(),
+                            ->required()
+                            ->maxLength(255)
+                            ->formatStateUsing(fn($state) => ucwords(strtolower($state)))
+                            ->dehydrateStateUsing(fn($state) => ucwords(strtolower($state))),
 
                         Forms\Components\DatePicker::make('visit_date')
                             ->label('Tanggal Kedatangan')
@@ -64,11 +67,16 @@ class StudentResource extends Resource
 
                         Forms\Components\TextInput::make('school_origin')
                             ->label('Asal Sekolah')
-                            ->required(),
+                            ->required()
+                            ->formatStateUsing(fn($state) => strtoupper($state))
+                            ->dehydrateStateUsing(fn($state) => strtoupper($state)),
 
                         Forms\Components\TextInput::make('parent_name')
                             ->label('Nama Orang Tua / Wali')
-                            ->required(),
+                            ->required()
+                            ->maxLength(255)
+                            ->formatStateUsing(fn($state) => ucwords(strtolower($state)))
+                            ->dehydrateStateUsing(fn($state) => ucwords(strtolower($state))),
 
                         Forms\Components\TextInput::make('no_hp')
                             ->label('Nomor HP')
@@ -90,7 +98,7 @@ class StudentResource extends Resource
                             ->searchable()
                             ->nullable(),
 
-                        Forms\Components\Select::make('user_pic_id')
+                        Forms\Components\Select::make('pic_user_id')
                             ->label('Panitia yang Melayani (PIC)')
                             ->placeholder('-- Pilih Panitia --')
                             ->options(
@@ -102,6 +110,11 @@ class StudentResource extends Resource
                             ->default(fn() => Auth::id()) // default: user yang sedang login
                             ->searchable()
                             ->required(),
+
+                        Forms\Components\Hidden::make('academic_year_id')
+                            ->default(
+                                \App\Models\AcademicYear::where('is_active', true)->value('id') ?? 1
+                            ),
                     ]),
 
 
@@ -225,10 +238,13 @@ class StudentResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('picUser.name')
-                    ->label('PIC')
+                    ->label('PIC Pertama')
                     ->placeholder('—')
+                    ->badge()
+                    ->color('info')
                     ->toggleable()
                     ->sortable(),
+
 
                 Tables\Columns\TextColumn::make('visit_date')
                     ->label('Tgl Datang')
@@ -393,7 +409,7 @@ class StudentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['major', 'picUser', 'academicYear', 'followUps'])
+            ->with(['major', 'picUser', 'academicYear', 'followUps', 'studentVisits'])
             ->withoutGlobalScopes([
                 SoftDeletingScope::class, // tampilkan data soft delete juga
             ]);

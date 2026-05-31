@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Student extends Model
 {
@@ -91,6 +92,28 @@ class Student extends Model
     {
         // pic = Person In Charge (panitia yang melayani)
         return $this->belongsTo(User::class, 'pic_user_id');
+    }
+
+    public function pics(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'student_pics')
+            ->withPivot(['assigned_at', 'notes'])
+            ->withTimestamps()
+            ->orderBy('student_pics.assigned_at', 'asc');
+    }
+
+    // Riwayat kunjungan siswa
+    public function studentVisits()
+    {
+        return $this->hasMany(StudentVisit::class)
+            ->orderBy('visit_number');
+    }
+
+    // Kunjungan terakhir
+    public function latestVisit()
+    {
+        return $this->hasOne(StudentVisit::class)
+            ->latestOfMany('visit_number');
     }
 
     public function followUps()

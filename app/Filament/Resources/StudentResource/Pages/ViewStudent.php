@@ -6,6 +6,7 @@ use App\Filament\Resources\StudentResource;
 use App\Filament\Resources\FollowUpResource;
 use App\Models\FollowUp;
 use App\Models\Student;
+use App\Models\StudentVisit;
 use Filament\Actions;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
@@ -13,6 +14,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Forms;
 use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DatePicker;
 
 class ViewStudent extends ViewRecord
 {
@@ -171,6 +175,108 @@ class ViewStudent extends ViewRecord
                         ->label('Tanggal Tes')
                         ->dateTime('d M Y, H:i')
                         ->placeholder('Belum tes'),
+                ]),
+
+            // ===== SECTION: Riwayat Kunjungan =====
+            Infolists\Components\Section::make('Riwayat Kunjungan')
+                ->icon('heroicon-o-calendar-days')
+                ->description('Histori setiap kedatangan siswa ke stand PSB')
+                ->collapsible()
+                ->headerActions([
+                    // Tombol Tambah Kunjungan
+                    Infolists\Components\Actions\Action::make('tambah_kunjungan')
+                        ->label('+ Tambah Kunjungan')
+                        ->icon('heroicon-o-plus-circle')
+                        ->color('success')
+                        ->form([
+                            DatePicker::make('visit_date')
+                                ->label('Tanggal Kunjungan')
+                                ->required()
+                                ->default(today())
+                                ->maxDate(today()),
+
+                            Select::make('user_id')
+                                ->label('Dilayani Oleh')
+                                ->options(
+                                    \App\Models\User::where('is_active', true)
+                                        ->orderBy('name')
+                                        ->pluck('name', 'id')
+                                )
+                                ->default(Auth::id())
+                                ->searchable()
+                                ->required(),
+
+                            Textarea::make('notes')
+                                ->label('Catatan Kunjungan')
+                                ->placeholder('contoh: Tanya soal biaya, datang bersama orang tua...')
+                                ->rows(2),
+                        ])
+                        ->action(function (array $data, $record): void {
+                            // Hitung nomor kunjungan berikutnya
+                            $nextVisitNumber = $record->studentVisits()->max('visit_number') + 1;
+
+                            $record->studentVisits()->create([
+                                'user_id'      => $data['user_id'],
+                                'visit_number' => $nextVisitNumber,
+                                'visit_date'   => $data['visit_date'],
+                                'notes'        => $data['notes'] ?? null,
+                            ]);
+
+                            // Update visit_date di students ke kunjungan terbaru
+                            $record->update([
+                                'visit_date'   => $data['visit_date'],
+                                'pic_user_id'  => $data['user_id'],
+                            ]);
+
+                            Notification::make()
+                                ->title('Kunjungan ke-' . $nextVisitNumber . ' berhasil dicatat')
+                                ->success()
+                                ->send();
+                        }),
+                ])
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('studentVisits')
+                        ->label('')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('visit_number')
+                                ->label('Kunjungan')
+                                ->formatStateUsing(fn($state) => 'Ke-' . $state)
+                                ->badge()
+                                ->color('gray'),
+
+                            Infolists\Components\TextEntry::make('visit_date')
+                                ->label('Tanggal')
+                                ->date('d M Y'),
+
+                            Infolists\Components\TextEntry::make('user.name')
+                                ->label('Dilayani Oleh')
+                                ->badge()
+                                ->color('info'),
+
+                            Infolists\Components\TextEntry::make('notes')
+                                ->label('Catatan')
+                                ->placeholder('—')
+                                ->columnSpan(1),
+                        ])
+                        ->columns(4)
+                        ->contained(false),
+
+                    // Summary di bawah tabel kunjungan
+                    Infolists\Components\TextEntry::make('studentVisits')
+                        ->label('Ringkasan')
+                        ->formatStateUsing(function ($record) {
+                            $total = $record->studentVisits()->count();
+                            $latest = $record->studentVisits()
+                                ->latest('visit_date')
+                                ->first();
+
+                            if (!$latest) return 'Belum ada kunjungan tercatat';
+
+                            return "Total {$total}x kunjungan | " .
+                                "Terakhir: " . $latest->visit_date->format('d M Y') .
+                                " oleh " . ($latest->user?->name ?? '-');
+                        })
+                        ->columnSpanFull(),
                 ]),
 
             // ===== SECTION 3: Histori Follow Up =====

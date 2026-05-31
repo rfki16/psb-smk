@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -64,5 +65,12 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->is_active === true;
+    }
+
+    public function assignedStudents(): BelongsToMany
+    {
+        return $this->belongsToMany(Student::class, 'student_pics')
+            ->withPivot(['assigned_at', 'notes'])
+            ->withTimestamps();
     }
 }
