@@ -91,10 +91,11 @@ class StudentResource extends Resource
 
                         Forms\Components\Select::make('major_id')
                             ->label('Minat Jurusan')
-                            ->placeholder('-- Pilih Jurusan --')
+                            // ->placeholder('-- Pilih Jurusan --')
                             ->options(
                                 Major::active()->ordered()->pluck('name', 'id')
                             )
+                            ->default(Major::where('code', 'KEP')->value('id'))
                             ->searchable()
                             ->nullable(),
 
@@ -374,7 +375,7 @@ class StudentResource extends Resource
                 ]),
             ])
             // Default sort: data terbaru di atas
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('visit_date', 'desc')
 
             // Tampilkan 25 data per halaman
             ->paginationPageOptions([10, 25, 50, 100])  // opsi pilihan per halaman

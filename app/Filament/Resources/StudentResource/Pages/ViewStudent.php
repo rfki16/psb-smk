@@ -166,9 +166,9 @@ class ViewStudent extends ViewRecord
                         ->dateTime('d M Y, H:i')
                         ->placeholder('Belum pernah'),
 
-                    Infolists\Components\TextEntry::make('paid_at')
-                        ->label('Tanggal Lunas')
-                        ->dateTime('d M Y, H:i')
+                    Infolists\Components\TextEntry::make('first_payment_date')
+                        ->label('Tanggal Bayar')
+                        ->date('d M Y')
                         ->placeholder('Belum bayar'),
 
                     Infolists\Components\TextEntry::make('tested_at')
@@ -326,6 +326,50 @@ class ViewStudent extends ViewRecord
                         ->contained(false), // tampilan lebih lega
                 ]),
 
+            Infolists\Components\Section::make('Histori Pembayaran')
+                ->icon('heroicon-o-banknotes')
+                ->collapsible()
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('payments')
+                        ->label('')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('payment_date')
+                                ->label('Tanggal')
+                                ->date('d M Y'),
+                            Infolists\Components\TextEntry::make('type')
+                                ->label('Jenis')
+                                ->badge()
+                                ->color(fn(string $state) => match ($state) {
+                                    'lunas' => 'success',
+                                    'dp'    => 'warning',
+                                    default => 'gray',
+                                })
+                                ->formatStateUsing(fn(string $state) => match ($state) {
+                                    'lunas' => 'Lunas',
+                                    'dp'    => 'DP',
+                                    default => '-',
+                                }),
+                            Infolists\Components\TextEntry::make('amount')
+                                ->label('Jumlah')
+                                ->formatStateUsing(
+                                    fn($state) => 'Rp ' . number_format($state, 0, ',', '.')
+                                ),
+                            Infolists\Components\TextEntry::make('method')
+                                ->label('Metode')
+                                ->formatStateUsing(fn($state) => match ($state) {
+                                    'tunai'    => 'Tunai',
+                                    'transfer' => 'Transfer',
+                                    default    => '-',
+                                }),
+                            Infolists\Components\TextEntry::make('reference_number')
+                                ->label('No. Referensi')
+                                ->placeholder('-'),
+                            Infolists\Components\TextEntry::make('user.name')
+                                ->label('Dicatat Oleh'),
+                        ])
+                        ->columns(3),
+                ]),
+
             // ===== SECTION 4: Catatan =====
             Infolists\Components\Section::make('Catatan Umum')
                 ->icon('heroicon-o-chat-bubble-left-ellipsis')
@@ -336,6 +380,8 @@ class ViewStudent extends ViewRecord
                         ->placeholder('Tidak ada catatan')
                         ->columnSpanFull(),
                 ]),
+
+
         ]);
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Student extends Model
 {
@@ -27,6 +28,7 @@ class Student extends Model
         'payment_status',
         'last_follow_up_at',
         'paid_at',
+        'first_payment_date',
         'tested_at',
     ];
 
@@ -34,6 +36,7 @@ class Student extends Model
         'visit_date'        => 'date',
         'last_follow_up_at' => 'datetime',
         'paid_at'           => 'datetime',
+        'first_payment_date'    => 'datetime',
         'tested_at'         => 'datetime',
     ];
 
@@ -121,9 +124,15 @@ class Student extends Model
         return $this->hasMany(FollowUp::class);
     }
 
-    public function payments()
+    public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payment::class)->latest();
+    }
+
+    // Total semua pembayaran yang masuk
+    public function getTotalPaidAttribute(): int
+    {
+        return $this->payments()->sum('amount');
     }
 
     public function documents()
